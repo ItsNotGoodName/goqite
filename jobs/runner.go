@@ -226,6 +226,24 @@ func CreateTx(ctx context.Context, tx *sql.Tx, q *goqite.Queue, name string, m [
 	return q.SendTx(ctx, tx, goqite.Message{Body: buf.Bytes()})
 }
 
+// CreateAndGetID is like Create, but also returns the message ID.
+func CreateAndGetID(ctx context.Context, q *goqite.Queue, name string, m []byte) (goqite.ID, error) {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(message{Name: name, Message: m}); err != nil {
+		return "", err
+	}
+	return q.SendAndGetID(ctx, goqite.Message{Body: buf.Bytes()})
+}
+
+// CreateAndGetIDTx is like CreateAndGetID, but within an existing transaction.
+func CreateAndGetIDTx(ctx context.Context, tx *sql.Tx, q *goqite.Queue, name string, m []byte) (goqite.ID, error) {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(message{Name: name, Message: m}); err != nil {
+		return "", err
+	}
+	return q.SendAndGetIDTx(ctx, tx, goqite.Message{Body: buf.Bytes()})
+}
+
 // logger matches the info level method from the slog.Logger.
 type logger interface {
 	Info(msg string, args ...any)
